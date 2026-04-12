@@ -300,6 +300,48 @@ select.inp option { background: var(--ink2); }
   -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
 }
 .room-url { font-size: 11px; color: var(--fog); margin-top: 10px; word-break: break-all; }
+.mod-display-grid {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 14px;
+}
+.mod-display-tile {
+  border-radius: var(--r-lg); padding: 18px 16px; display: flex;
+  align-items: center; gap: 12px; border: 2px solid rgba(255,255,255,.1);
+  transition: border-color .2s;
+}
+.mod-display-tile .sym { font-size: 24px; flex-shrink: 0; opacity: .85; }
+.mod-display-tile .opt-txt {
+  font-size: 15px; font-weight: 700; color: #fff; line-height: 1.3; flex: 1;
+}
+.mod-display-tile .opt-cnt-badge {
+  font-size: 13px; font-weight: 800; background: rgba(0,0,0,.25);
+  border-radius: 20px; padding: 3px 10px; color: #fff; white-space: nowrap;
+}
+.mod-tile-r { background: linear-gradient(145deg,#c42030,#8c1020); }
+.mod-tile-b { background: linear-gradient(145deg,#1e50b8,#143888); }
+.mod-tile-y { background: linear-gradient(145deg,#b87808,#8a5800); }
+.mod-tile-g { background: linear-gradient(145deg,#1a8838,#0e5c22); }
+.mod-display-tile.win { border-color: var(--green); box-shadow: 0 0 0 2px rgba(62,207,114,.35); }
+.mod-stmt-display { display: flex; flex-direction: column; gap: 10px; margin-top: 14px; }
+.mod-stmt-tile {
+  padding: 16px 20px; border-radius: var(--r-lg); border: 2px solid rgba(255,255,255,.1);
+  background: var(--ink3); font-size: 16px; font-weight: 600; color: var(--snow);
+  line-height: 1.4; display: flex; align-items: center; justify-content: space-between; gap: 12px;
+}
+.mod-stmt-tile .stmt-num {
+  width: 30px; height: 30px; border-radius: 50%; background: rgba(255,255,255,.1);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 13px; font-weight: 800; flex-shrink: 0;
+}
+.mod-stmt-tile .stmt-cnt {
+  font-size: 13px; font-weight: 800; background: rgba(255,255,255,.12);
+  border-radius: 20px; padding: 3px 12px; white-space: nowrap;
+}
+.mod-stmt-tile.rev-lie {
+  background: rgba(255,94,125,.15); border-color: var(--coral); color: var(--coral);
+}
+.mod-stmt-tile.rev-truth {
+  background: rgba(62,207,114,.1); border-color: var(--green); color: var(--green);
+}
 .copy-btn {
   display: inline-flex; align-items: center; gap: 6px;
   margin-top: 14px; padding: 9px 18px; border-radius: 20px;
@@ -357,8 +399,7 @@ select.inp option { background: var(--ink2); }
 .gi-truth:hover { border-color: rgba(0,201,177,.4); }
 .gi-emoji { background: linear-gradient(135deg,rgba(124,92,252,.18),rgba(124,92,252,.07)); border-color: rgba(124,92,252,.2); }
 .gi-emoji:hover { border-color: rgba(124,92,252,.45); }
-.gi-supra { background: linear-gradient(135deg,rgba(255,181,71,.14),rgba(255,181,71,.05)); border-color: rgba(255,181,71,.2); }
-.gi-supra:hover { border-color: rgba(255,181,71,.4); }
+
 .gi-icon { font-size: 32px; flex-shrink: 0; }
 .gi-title { font-size: 16px; font-weight: 700; margin-bottom: 2px; }
 .gi-sub { font-size: 12px; color: var(--fog); }
@@ -524,6 +565,7 @@ select.inp option { background: var(--ink2); }
 ───────────────────────────────────────── */
 .cf { position: fixed; z-index: 9999; pointer-events: none; font-size: 22px; animation: cffall 2.2s ease-in forwards; }
 @keyframes cffall { 0% { opacity:1; transform:translateY(-20px) rotate(0deg); } 100% { opacity:0; transform:translateY(110vh) rotate(720deg); } }
+@keyframes revealPop { 0% { opacity:0; transform:scale(.88); } 60% { transform:scale(1.03); } 100% { opacity:1; transform:scale(1); } }
 
 /* ─────────────────────────────────────────
    SPACING UTILS
@@ -546,6 +588,10 @@ select.inp option { background: var(--ink2); }
     <div class="entry-logo">⌨️</div>
     <div class="entry-title">Ctrl+Play</div>
     <div class="entry-sub">Where Internal Audit comes to play.</div>
+    <div style="display:flex;gap:8px;justify-content:center;margin-top:12px;flex-wrap:wrap;">
+      <span style="font-size:12px;font-weight:600;padding:4px 12px;border-radius:20px;background:rgba(255,255,255,.07);color:var(--fog);">🤥 2 Truths &amp; a Lie</span>
+      <span style="font-size:12px;font-weight:600;padding:4px 12px;border-radius:20px;background:rgba(255,255,255,.07);color:var(--fog);">🎬 Emoji Quiz</span>
+    </div>
     <div class="entry-btns">
       <button class="btn btn-v" onclick="enterAs('mod')">
         <span>🎛</span> I'm the moderator
@@ -596,7 +642,6 @@ select.inp option { background: var(--ink2); }
     </div>
     <div class="tabs">
       <button class="tab on" onclick="mTab('truth',this)">2 Truths &amp; a Lie</button>
-      <button class="tab" onclick="mTab('supra',this)">Superlatives</button>
     </div>
     <div class="tab-panels">
 
@@ -693,58 +738,59 @@ select.inp option { background: var(--ink2); }
     <div class="game-list mt-sm">
       <div class="game-item gi-truth" onclick="startGame('truth')">
         <div class="gi-icon">🤥</div>
-        <div><div class="gi-title">2 Truths &amp; a Lie</div><div class="gi-sub">Spot the lie · 20 second timer</div></div>
+        <div><div class="gi-title">2 Truths &amp; a Lie</div><div class="gi-sub">Spot the lie · 20 sec timer · team votes</div></div>
       </div>
       <div class="game-item gi-emoji" onclick="startGame('emoji')">
-        <div class="gi-icon">🔮</div>
-        <div><div class="gi-title">Emoji Quiz</div><div class="gi-sub">Decode IA concepts · 20 second timer</div></div>
-      </div>
-      <div class="game-item gi-supra" onclick="startGame('supra')">
-        <div class="gi-icon">🏆</div>
-        <div><div class="gi-title">Superlatives</div><div class="gi-sub">Vote on team awards<br><span class="gi-tag">IF TIME ALLOWS</span></div></div>
+        <div class="gi-icon">🎬</div>
+        <div><div class="gi-title">Emoji Quiz</div><div class="gi-sub">Guess the movie · 20 sec timer</div></div>
       </div>
     </div>
   </div>
 
   <!-- Truth: Question -->
   <div class="page" id="mod-truth-q">
-    <div style="display:flex;align-items:center;justify-content:space-between;padding:20px 0 12px;">
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:20px 0 8px;">
       <div class="h2">2 Truths &amp; a Lie</div>
       <div class="label" id="m-tprog"></div>
     </div>
-    <div class="q-panel">
-      <div class="truth-player" id="m-tplayer">—</div>
-      <div class="q-hint">Which statement is the lie?</div>
-    </div>
+    <!-- Timer bar -->
     <div class="timer-track"><div class="timer-fill" id="m-ttbar" style="width:100%"></div></div>
-    <div class="timer-ring-wrap">
-      <div class="t-ring">
+    <!-- Player name + prompt -->
+    <div class="q-panel" style="padding:20px 24px 16px;">
+      <div class="truth-player" id="m-tplayer">—</div>
+      <div class="q-hint" style="margin-top:6px;">Which statement is the <strong style="color:var(--coral);">lie</strong>?</div>
+    </div>
+    <!-- Statements shown large for the Zoom screen -->
+    <div class="mod-stmt-display" id="m-tstmts-display"></div>
+    <!-- Timer ring + live count side by side -->
+    <div style="display:flex;align-items:center;gap:14px;margin-top:14px;">
+      <div class="t-ring" style="flex-shrink:0;">
         <svg width="86" height="86" viewBox="0 0 86 86">
           <circle class="t-bg" cx="43" cy="43" r="36"/>
           <circle class="t-fg" id="m-tring" cx="43" cy="43" r="36"/>
         </svg>
         <div class="t-num" id="m-tnum">20</div>
       </div>
-    </div>
-    <div class="surface surface-sm">
-      <div class="label" style="margin-bottom:10px;">Live responses</div>
-      <div class="live-feed" id="m-tlive"><div class="live-empty">Waiting for answers…</div></div>
+      <div class="surface surface-sm" style="flex:1;padding:12px 14px;">
+        <div class="label" style="margin-bottom:8px;">Answers in</div>
+        <div class="live-feed" id="m-tlive"><div class="live-empty">Waiting…</div></div>
+      </div>
     </div>
     <div class="mt-lg"><button class="btn btn-ghost" onclick="mRevealTruth()">Reveal answer →</button></div>
   </div>
 
   <!-- Truth: Reveal -->
   <div class="page" id="mod-truth-rev">
-    <div style="display:flex;align-items:center;justify-content:space-between;padding:20px 0 12px;">
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:20px 0 8px;">
       <div class="h2">The lie was…</div>
       <div class="label" id="m-trevprog"></div>
     </div>
-    <div class="q-panel">
+    <div class="q-panel" style="padding:18px 24px 14px;">
       <div class="truth-player" id="m-trevplayer">—</div>
     </div>
-    <div class="stmt-list" id="m-trevstmts"></div>
+    <div class="mod-stmt-display" id="m-trevstmts"></div>
     <div class="surface surface-sm mt">
-      <div class="label" style="margin-bottom:10px;">Got it right</div>
+      <div class="label" style="margin-bottom:8px;">Speed ranking</div>
       <div class="live-feed" id="m-tcorrect"></div>
     </div>
     <div class="btn-row mt-lg">
@@ -755,16 +801,20 @@ select.inp option { background: var(--ink2); }
 
   <!-- Emoji: Question -->
   <div class="page" id="mod-emoji-q">
-    <div style="display:flex;align-items:center;justify-content:space-between;padding:20px 0 12px;">
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:20px 0 8px;">
       <div class="h2">Emoji Quiz</div>
       <div class="label" id="m-eprog"></div>
     </div>
-    <div class="q-panel">
-      <div class="emoji-hero" id="m-edisp">🔍</div>
-      <div class="q-hint">What IA concept is this?</div>
-    </div>
     <div class="timer-track"><div class="timer-fill" id="m-etbar" style="width:100%"></div></div>
-    <div class="timer-ring-wrap">
+    <!-- Giant emoji display - main focus on Zoom screen -->
+    <div class="q-panel" style="padding:36px 24px 32px;margin:10px 0;">
+      <div class="emoji-hero" id="m-edisp" style="font-size:clamp(60px,18vw,96px);margin-bottom:0;">🎬</div>
+    </div>
+    <div style="text-align:center;margin-bottom:4px;">
+      <span style="font-size:14px;color:var(--fog);font-weight:600;">What movie is this? — shout your answer!</span>
+    </div>
+    <!-- Timer ring centred -->
+    <div class="timer-ring-wrap" style="margin:14px 0 8px;">
       <div class="t-ring">
         <svg width="86" height="86" viewBox="0 0 86 86">
           <circle class="t-bg" cx="43" cy="43" r="36"/>
@@ -773,56 +823,29 @@ select.inp option { background: var(--ink2); }
         <div class="t-num" id="m-enum">20</div>
       </div>
     </div>
-    <div class="mod-ans-grid" id="m-eopts"></div>
     <div class="mt"><button class="btn btn-ghost" onclick="mRevealEmoji()">Reveal answer →</button></div>
   </div>
 
   <!-- Emoji: Reveal -->
   <div class="page" id="mod-emoji-rev">
-    <div style="display:flex;align-items:center;justify-content:space-between;padding:20px 0 12px;">
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:20px 0 8px;">
       <div class="h2">Answer!</div>
       <div class="label" id="m-erevprog"></div>
     </div>
-    <div class="q-panel">
-      <div class="emoji-hero" id="m-erevdisp">🔍</div>
-      <div class="q-text" id="m-eans" style="color:var(--green);"></div>
+    <!-- Reveal panel - emoji + answer big and centred -->
+    <div style="text-align:center;padding:28px 20px 24px;background:linear-gradient(135deg,rgba(62,207,114,.12),rgba(0,201,177,.08));border:1px solid rgba(62,207,114,.3);border-radius:var(--r-xl);margin:10px 0;animation:revealPop .4s cubic-bezier(.16,1,.3,1);">
+      <div id="m-erevdisp" style="font-size:clamp(48px,14vw,80px);line-height:1;margin-bottom:16px;">🎬</div>
+      <div id="m-eans" style="font-family:'Plus Jakarta Sans',sans-serif;font-size:clamp(22px,6vw,32px);font-weight:800;letter-spacing:-.02em;color:var(--green);line-height:1.2;"></div>
     </div>
-    <div class="mod-ans-grid" id="m-erevopts"></div>
+    <!-- Speed ranking -->
+    <div class="surface surface-sm mt" id="m-espeed"></div>
     <div class="btn-row mt-lg">
-      <button class="btn btn-ghost" onclick="nextEmoji()">Next →</button>
-      <button class="btn btn-v" onclick="mShowLb('emoji')">Scores</button>
+      <button class="btn btn-ghost" onclick="nextEmoji()">Next question →</button>
+      <button class="btn btn-v" onclick="mShowLb('emoji')">See scores</button>
     </div>
   </div>
 
-  <!-- Supra: Question -->
-  <div class="page" id="mod-supra-q">
-    <div style="display:flex;align-items:center;justify-content:space-between;padding:20px 0 12px;">
-      <div class="h2">Superlatives</div>
-      <div class="label" id="m-sprog"></div>
-    </div>
-    <div class="q-panel"><div class="q-text" id="m-sprompt">…</div></div>
-    <div class="surface surface-sm mt">
-      <div class="label" style="margin-bottom:10px;">Answers coming in</div>
-      <div class="live-feed" id="m-slive"><div class="live-empty">Waiting…</div></div>
-    </div>
-    <div class="btn-row mt-lg">
-      <button class="btn btn-ghost" onclick="nextSupra()">Next prompt →</button>
-      <button class="btn btn-a" onclick="mRevealSupra()">Reveal answers</button>
-    </div>
-  </div>
 
-  <!-- Supra: Reveal -->
-  <div class="page" id="mod-supra-rev">
-    <div class="page-header">
-      <div class="h2">What the team said…</div>
-    </div>
-    <div class="q-panel"><div class="q-text" id="m-srevprompt">…</div></div>
-    <div id="m-srevlist" class="mt"></div>
-    <div class="btn-row mt-lg">
-      <button class="btn btn-ghost" onclick="nextSupra()">Next prompt →</button>
-      <button class="btn btn-v" onclick="endGame()">Done</button>
-    </div>
-  </div>
 
   <!-- Leaderboard -->
   <div class="page" id="mod-lb">
@@ -889,14 +912,28 @@ select.inp option { background: var(--ink2); }
 
   <!-- Lobby -->
   <div class="page" id="player-lobby">
-    <div class="status-panel">
-      <span class="status-icon">⏳</span>
-      <div class="status-title">You're in!</div>
-      <div class="body">Waiting for the moderator to start the game…</div>
-      <div class="dots"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div>
+    <div style="text-align:center;padding:28px 20px 20px;">
+      <span style="font-size:44px;">🎉</span>
+      <div class="h2" style="margin-top:12px;margin-bottom:6px;">You're in!</div>
+      <div class="body">The moderator will start the game shortly.<br/>Keep your phone ready and your sound on!</div>
+      <div class="dots" style="margin-top:16px;"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div>
+    </div>
+    <!-- How to play quick guide -->
+    <div class="surface" style="margin-bottom:12px;">
+      <div class="h3" style="margin-bottom:12px;">How it works</div>
+      <div style="display:flex;flex-direction:column;gap:10px;">
+        <div style="display:flex;align-items:center;gap:12px;">
+          <span style="font-size:22px;">🤥</span>
+          <div><div style="font-size:13px;font-weight:700;">2 Truths &amp; a Lie</div><div style="font-size:12px;color:var(--fog);margin-top:1px;">Tap the statement you think is the lie. Faster = more points!</div></div>
+        </div>
+        <div style="display:flex;align-items:center;gap:12px;">
+          <span style="font-size:22px;">🎬</span>
+          <div><div style="font-size:13px;font-weight:700;">Emoji Quiz</div><div style="font-size:12px;color:var(--fog);margin-top:1px;">Look at the emojis on your screen and shout the movie name out loud!</div></div>
+        </div>
+      </div>
     </div>
     <div class="surface">
-      <div class="h3" style="margin-bottom:12px;">Players in room</div>
+      <div class="h3" style="margin-bottom:10px;">Players in room</div>
       <div class="chip-wrap" id="p-jlist"></div>
     </div>
   </div>
@@ -939,12 +976,7 @@ select.inp option { background: var(--ink2); }
     </div>
   </div>
 
-  <!-- Supra -->
-  <div class="page" id="player-supra">
-    <div style="display:flex;align-items:center;justify-content:space-between;padding:16px 0 8px;">
-      <div class="h2">Superlatives</div>
-      <div class="label" id="p-sprog"></div>
-    </div>
+
     <div class="q-panel"><div class="q-text" id="p-sprompt">…</div></div>
     <div class="inp-pair mt">
       <input class="inp" type="text" id="p-sans" placeholder="Type your answer…"/>
@@ -993,20 +1025,22 @@ import{getDatabase,ref,set,get,onValue,update}from'https://www.gstatic.com/fireb
 
 /* ─── STATE ─── */
 let db,roomRef,roomCode,role=null,pName='',gs={},listeners=[],mTI=null,pTI=null;
-let tOrder=[],tIdx=0,ePool=[],eIdx=0,sIdx=0,lbNext=null;
+let tOrder=[],tIdx=0,ePool=[],eIdx=0,lbNext=null;
 
 /* ─── EMOJI DATA ─── */
 const EMOJI=[
-  {emojis:'🔍📋✅',answer:'Audit Process',opts:['Audit Process','Risk Assessment','Control Testing','Compliance Review']},
-  {emojis:'⚠️📊🎯',answer:'Risk Assessment',opts:['Risk Assessment','Audit Planning','Issue Tracking','KPI Review']},
-  {emojis:'🏦💰🔐',answer:'Internal Controls',opts:['Internal Controls','Financial Audit','Data Security','Asset Management']},
-  {emojis:'📝🖊️📄',answer:'Audit Report',opts:['Audit Report','Work Papers','Policy Document','Findings Log']},
-  {emojis:'🚦🟢🟡🔴',answer:'Risk Rating',opts:['Risk Rating','Traffic Analysis','Status Update','Priority Matrix']},
-  {emojis:'🤝🏛️📜',answer:'Governance',opts:['Governance','Compliance','Partnership','Legal Review']},
-  {emojis:'🔄♻️📅',answer:'Continuous Auditing',opts:['Continuous Auditing','Process Improvement','Monthly Review','Cycle Testing']},
-  {emojis:'🕵️🔎🗂️',answer:'Forensic Investigation',opts:['Forensic Investigation','Audit Planning','Data Analysis','Record Review']},
-  {emojis:'📊📈🔢',answer:'Data Analytics',opts:['Data Analytics','Financial Reporting','KPI Dashboard','Trend Analysis']},
-  {emojis:'🏢👥💼',answer:'Stakeholder Management',opts:['Stakeholder Management','Team Building','Office Culture','Board Reporting']},
+  {emojis:'🦁👑',answer:'The Lion King'},
+  {emojis:'❄️👭⛄',answer:'Frozen'},
+  {emojis:'⏰🚗⚡',answer:'Back to the Future'},
+  {emojis:'😈👠👜',answer:'The Devil Wears Prada'},
+  {emojis:'🐺📈💰',answer:'The Wolf of Wall Street'},
+  {emojis:'🤫🐑🔪',answer:'Silence of the Lambs'},
+  {emojis:'🏃✈️👮',answer:'Catch Me If You Can'},
+  {emojis:'👨‍🍳🐀🥘',answer:'Ratatouille'},
+  {emojis:'🐴🛏️🔫',answer:'The Godfather'},
+  {emojis:'🕵️🇮🇳🔫🕌',answer:'Dhurandhar'},
+  {emojis:'3️⃣👨‍🤝‍👨🌊🇪🇸',answer:'Zindagi Na Milegi Dobara'},
+  {emojis:'🎹🙈🔪😱',answer:'Andhadhun'},
 ];
 
 /* ─── FIREBASE ─── */
@@ -1036,13 +1070,13 @@ window.modLogin=function(){
 };
 
 /* ─── LOCAL STORAGE ─── */
-let truthSubs=[],supraPrompts=[];
+let truthSubs=[];
 function loadLocal(){
   const d=JSON.parse(localStorage.getItem('iaMixer3')||'{}');
-  truthSubs=d.t||[];supraPrompts=d.s||[];
-  renderTS();renderSP();
+  truthSubs=d.t||[];
+  renderTS();
 }
-function saveLocal(){localStorage.setItem('iaMixer3',JSON.stringify({t:truthSubs,s:supraPrompts}));}
+function saveLocal(){localStorage.setItem('iaMixer3',JSON.stringify({t:truthSubs}));}
 
 /* TABS */
 window.mTab=function(id,el){
@@ -1072,24 +1106,13 @@ function renderTS(){
 window.delT=function(i){truthSubs.splice(i,1);renderTS();saveLocal();};
 
 /* SUPRA */
-window.addSupra=function(){
-  if(supraPrompts.length>=10){alert('Maximum 10 prompts.');return;}
-  const val=v('sp-inp');if(!val)return;
-  supraPrompts.push(val);document.getElementById('sp-inp').value='';renderSP();saveLocal();
-};
-function renderSP(){
-  const el=document.getElementById('sp-list');
-  if(!supraPrompts.length){el.innerHTML='<div class="empty-state">No prompts yet.</div>';return;}
-  el.innerHTML='<div class="surface"><div class="qlist-header"><div class="h3">Prompts</div><div class="qcount">'+supraPrompts.length+'/10</div></div>'+
-    supraPrompts.map((p,i)=>`<div class="qrow"><div class="qrow-num">${i+1}</div><div class="qrow-t" style="flex:1;font-size:14px;">${p}</div><button class="qrow-del" onclick="delS(${i})">&times;</button></div>`).join('')+'</div>';
-}
-window.delS=function(i){supraPrompts.splice(i,1);renderSP();saveLocal();};
+// Superlatives setup removed
 
 /* ─── CREATE ROOM ─── */
 window.createRoom=async function(){
   roomCode=Math.random().toString(36).substring(2,8).toUpperCase();
   roomRef=ref(db,'rooms/'+roomCode);
-  await set(roomRef,{phase:'lobby',players:{},scores:{},answers:{},currentQ:null,truthSubs,supraPrompts,ts:Date.now()});
+  await set(roomRef,{phase:'lobby',players:{},scores:{},answers:{},currentQ:null,truthSubs,ts:Date.now()});
   const baseUrl=location.href.split('?')[0];
   const joinUrl=baseUrl+'?room='+roomCode;
   window._joinUrl=joinUrl;
@@ -1130,22 +1153,22 @@ function handleMod(s){
   document.getElementById('m-jlist').innerHTML=joined.map(p=>`<div class="chip"><span class="chip-dot"></span>${p}</div>`).join('');
   const ans=s.answers||{};
   if(s.phase==='truth-q'){
-    document.getElementById('m-tlive').innerHTML=Object.keys(ans).length
+    const totalAns=Object.keys(ans).length;
+    document.getElementById('m-tlive').innerHTML=totalAns
       ?Object.keys(ans).map(p=>`<div class="live-row"><span class="live-dot"></span><span class="live-name">${p}</span><span class="live-val">answered</span></div>`).join('')
-      :'<div class="live-empty">No answers yet…</div>';
+      :'<div class="live-empty">Waiting…</div>';
+    // Update per-statement counts on the display tiles
+    if(s.currentQ){
+      const stmts=s.currentQ.shuffled||[];
+      stmts.forEach((st,i)=>{
+        const tile=document.querySelector(`#m-tstmts-display .mod-stmt-tile:nth-child(${i+1}) .stmt-cnt`);
+        if(tile){const cnt=Object.values(ans).filter(v=>(v&&v.ans?v.ans:v)===st.text).length;tile.textContent=cnt||'';}
+      });
+    }
   }
 
-  if(s.phase==='emoji-q'&&s.currentQ){
-    (s.currentQ.shuffled||[]).forEach((o,i)=>{
-      const el=document.getElementById('meo-'+i);
-      if(el)el.querySelector('.opt-cnt').textContent=Object.values(ans).filter(v=>(v&&v.ans?v.ans:v)===o).length;
-    });
-  }
-  if(s.phase==='supra-q'){
-    document.getElementById('m-slive').innerHTML=Object.entries(ans).length
-      ?Object.entries(ans).map(([p,a])=>`<div class="live-row"><span class="live-dot"></span><span class="live-name">${p}</span><span class="live-val">${a}</span></div>`).join('')
-      :'<div class="live-empty">No answers yet…</div>';
-  }
+  // Emoji quiz: no answer options to track
+
 }
 
 /* ─── PLAYER STATE ─── */
@@ -1172,31 +1195,14 @@ function handlePlayer(s){
     showP('player','player-emoji');
     document.getElementById('p-edisp').textContent=q.emojis;
     document.getElementById('p-eprog').textContent=q.rn+' / '+q.tr;
-    document.getElementById('p-efb').className='toast';
     document.getElementById('p-ewait').style.display='none';
-    const C=['ans-r','ans-b','ans-y','ans-g'],SH=['▲','◆','●','■'];
-    document.getElementById('p-eopts').innerHTML=q.shuffled.map((o,i)=>
-      `<button class="ans-btn ${C[i]}" id="pe-${i}" onclick="pEmoji('${esc(o)}','${esc(q.answer)}',${i})"><div class="sym">${SH[i]}</div><div class="inner">${o}</div></button>`
-    ).join('');
     startPT(20,'p-etbar');
   }
   if(ph==='emoji-rev'&&q){
     stopPT();
-    document.querySelectorAll('#p-eopts .ans-btn').forEach(b=>{
-      b.disabled=true;
-      const t=b.querySelector('.inner').textContent;
-      b.classList.add(t===q.answer?'ans-correct':'ans-wrong');
-    });
     document.getElementById('p-ewait').style.display='block';
   }
-  if(ph==='supra-q'&&q){
-    showP('player','player-supra');
-    document.getElementById('p-sprompt').textContent=q.prompt;
-    document.getElementById('p-sprog').textContent=q.rn+' / '+q.tr;
-    document.getElementById('p-sans').value='';
-    document.getElementById('p-sdone').style.display='none';
-    document.getElementById('p-sans').parentElement.style.display='flex';
-  }
+
   if(ph==='lb'){showP('player','player-lb');renderLb(s.scores,'p-lbwin','p-lblist');}
   if(ph==='end'){showP('player','player-end');renderLb(s.scores,null,'p-finallb');confetti();}
 }
@@ -1208,9 +1214,6 @@ window.startGame=function(game){
     tOrder=[...gs.truthSubs].sort(()=>Math.random()-.5);tIdx=0;launchTruth();
   }else if(game==='emoji'){
     ePool=[...EMOJI].sort(()=>Math.random()-.5);eIdx=0;initScores();launchEmoji();
-  }else if(game==='supra'){
-    if(!gs.supraPrompts?.length){alert('No prompts! Add them in Setup → Superlatives.');return;}
-    sIdx=0;launchSupra();
   }
 };
 
@@ -1228,6 +1231,10 @@ function launchTruth(){
     document.getElementById('m-tprog').textContent=(tIdx+1)+' / '+tOrder.length;
     document.getElementById('m-trevprog').textContent=(tIdx+1)+' / '+tOrder.length;
     document.getElementById('m-tlive').innerHTML='<div class="live-empty">No answers yet…</div>';
+    // Render statements as big display tiles for Zoom screen
+    document.getElementById('m-tstmts-display').innerHTML=shuffled.map((s,i)=>
+      `<div class="mod-stmt-tile"><span class="stmt-num">${i+1}</span><span style="flex:1;">${s.text}</span><span class="stmt-cnt">0</span></div>`
+    ).join('');
     startMT(20,'m-ttbar','m-tring','m-tnum');
   });
 }
@@ -1244,8 +1251,8 @@ window.mRevealTruth=function(){
   update(roomRef,{phase:'truth-rev',scores:sc}).then(()=>{
     showP('mod','mod-truth-rev');
     document.getElementById('m-trevplayer').textContent=sub.player;
-    document.getElementById('m-trevstmts').innerHTML=(gs.currentQ?.shuffled||[]).map(s=>
-      `<div class="stmt ${s.isLie?'rev-lie':'rev-truth'}" style="pointer-events:none;">${s.text}</div>`
+    document.getElementById('m-trevstmts').innerHTML=(gs.currentQ?.shuffled||[]).map((s,i)=>
+      `<div class="mod-stmt-tile ${s.isLie?'rev-lie':'rev-truth'}"><span class="stmt-num">${s.isLie?'❌':'✅'}</span><span style="flex:1;">${s.text}</span></div>`
     ).join('');
     const medals=['🥇','🥈','🥉'];
     document.getElementById('m-tcorrect').innerHTML=correct.length
@@ -1259,73 +1266,29 @@ window.nextTruth=function(){tIdx++;launchTruth();};
 function launchEmoji(){
   if(eIdx>=ePool.length){mShowLb('emoji');return;}
   const r=ePool[eIdx];
-  const shuffled=[...r.opts].sort(()=>Math.random()-.5);
-  const q={...r,shuffled,rn:eIdx+1,tr:ePool.length};
+  const q={emojis:r.emojis,answer:r.answer,rn:eIdx+1,tr:ePool.length};
   update(roomRef,{phase:'emoji-q',currentQ:q,answers:{}}).then(()=>{
     showP('mod','mod-emoji-q');
     document.getElementById('m-edisp').textContent=r.emojis;
     document.getElementById('m-eprog').textContent=(eIdx+1)+' / '+ePool.length;
-    const SH=['▲','◆','●','■'];
-    document.getElementById('m-eopts').innerHTML=shuffled.map((o,i)=>
-      `<div class="mod-ans" id="meo-${i}"><span class="sym">${SH[i]}</span><span class="opt-lbl">${o}</span><span class="opt-cnt">0</span></div>`
-    ).join('');
     startMT(20,'m-etbar','m-ering','m-enum');
   });
 }
 window.mRevealEmoji=function(){
   stopMT();
-  const r=ePool[eIdx],q=gs.currentQ,ans=gs.answers||{},sc={...(gs.scores||{})};
-  // Find all correct answerers with timestamps, rank by speed
-  const correct=Object.entries(ans)
-    .filter(([p,v])=>(v&&v.ans?v.ans:v)===r.answer)
-    .map(([p,v])=>({p,ts:v&&v.ts?v.ts:Infinity}))
-    .sort((a,b)=>a.ts-b.ts);
-  correct.forEach(({p},i)=>{const pts=Math.max(300,1000-i*100);sc[p]=(sc[p]||0)+pts;});
+  const r=ePool[eIdx],sc={...(gs.scores||{})};
   update(roomRef,{phase:'emoji-rev',scores:sc}).then(()=>{
     showP('mod','mod-emoji-rev');
     document.getElementById('m-erevdisp').textContent=r.emojis;
     document.getElementById('m-eans').textContent=r.answer;
     document.getElementById('m-erevprog').textContent=(eIdx+1)+' / '+ePool.length;
-    const SH=['▲','◆','●','■'];
-    document.getElementById('m-erevopts').innerHTML=(q?.shuffled||[]).map((o,i)=>{
-      const cnt=Object.values(ans).filter(v=>(v&&v.ans?v.ans:v)===o).length;
-      const win=o===r.answer;
-      return `<div class="mod-ans${win?' win':''}"><span class="sym">${SH[i]}</span><span class="opt-lbl">${o}</span><span class="opt-cnt">${cnt}</span></div>`;
-    }).join('');
-    // Show speed ranking below options
-    const medals=['🥇','🥈','🥉'];
-    const speedHtml=correct.length
-      ?'<div class="surface surface-sm" style="margin-top:12px;"><div class="label" style="margin-bottom:8px;">Speed ranking</div><div class="live-feed">'+
-        correct.map(({p},i)=>{const pts=Math.max(300,1000-i*100);return`<div class="live-row"><span class="live-dot"></span><span class="live-name">${medals[i]||i+1+'. '} ${p}</span><span class="live-val">+${pts} pts</span></div>`;}).join('')+
-        '</div></div>'
-      :'<div class="surface surface-sm" style="margin-top:12px;"><div class="live-empty">Nobody got it this round.</div></div>';
-    const revOpts=document.getElementById('m-erevopts');
-    revOpts.insertAdjacentHTML('afterend',speedHtml);
+    document.getElementById('m-espeed').innerHTML='';
+    confetti();
   });
 };
 window.nextEmoji=function(){eIdx++;launchEmoji();};
 
-/* SUPRA */
-function launchSupra(){
-  const prompts=gs.supraPrompts||[];
-  if(sIdx>=prompts.length){endGame();return;}
-  const q={prompt:prompts[sIdx],rn:sIdx+1,tr:prompts.length};
-  update(roomRef,{phase:'supra-q',currentQ:q,answers:{}}).then(()=>{
-    showP('mod','mod-supra-q');
-    document.getElementById('m-sprompt').textContent=prompts[sIdx];
-    document.getElementById('m-sprog').textContent=(sIdx+1)+' / '+prompts.length;
-    document.getElementById('m-slive').innerHTML='<div class="live-empty">Waiting…</div>';
-  });
-}
-window.nextSupra=function(){sIdx++;launchSupra();};
-window.mRevealSupra=function(){
-  const ans=gs.answers||{};
-  showP('mod','mod-supra-rev');
-  document.getElementById('m-srevprompt').textContent=(gs.supraPrompts||[])[sIdx]||'';
-  document.getElementById('m-srevlist').innerHTML=Object.entries(ans).length
-    ?'<div class="surface">'+Object.entries(ans).map(([p,a])=>`<div class="live-row"><span class="live-dot"></span><span class="live-name">${p}</span><span class="live-val">${a}</span></div>`).join('')+'</div>'
-    :'<div class="empty-state">No answers submitted.</div>';
-};
+// Superlatives game removed
 
 /* LB & END */
 window.mShowLb=function(next){
@@ -1370,22 +1333,8 @@ window.pTruth=function(ans,lie,idx){
   fb.className='toast on '+(ok?'toast-ok':'toast-err');
   fb.textContent=ok?'✅ Correct! You found the lie!':'❌ Not quite — wait for the reveal…';
 };
-window.pEmoji=function(ans,correct,idx){
-  const ts=Date.now();
-  update(ref(db,'rooms/'+roomCode+'/answers'),{[pid()]:{ans,ts}});
-  document.querySelectorAll('#p-eopts .ans-btn').forEach(b=>b.disabled=true);
-  document.getElementById('pe-'+idx).classList.add('selected');
-  stopPT();
-  const ok=ans===correct,fb=document.getElementById('p-efb');
-  fb.className='toast on '+(ok?'toast-ok':'toast-err');
-  fb.textContent=ok?'✅ Correct!':'❌ Wrong — wait for the reveal…';
-};
-window.submitSupra=function(){
-  const ans=document.getElementById('p-sans').value.trim();if(!ans)return;
-  update(ref(db,'rooms/'+roomCode+'/answers'),{[pid()]:ans});
-  document.getElementById('p-sans').parentElement.style.display='none';
-  document.getElementById('p-sdone').style.display='block';
-};
+// Emoji quiz: no player answer buttons — shout-out format
+// Superlatives removed
 
 /* ─── TIMERS ─── */
 const DA=226; // 2πr for r=36
