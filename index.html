@@ -855,7 +855,6 @@ select.inp option { background: var(--ink2); }
     <div id="m-epodium" style="margin-top:12px;"></div>
     <div class="btn-row mt-lg">
       <button class="btn btn-ghost" onclick="nextEmoji()">Next question →</button>
-      <button class="btn btn-v" onclick="mShowLb('emoji')">See scores</button>
     </div>
   </div>
 
@@ -1225,9 +1224,7 @@ function handlePlayer(s){
     document.getElementById('p-eanswerdisp').textContent = q.emojis;
     document.getElementById('p-eanswertext').textContent = q.answer;
     ansBox.style.display='block';
-    // Show podium
-    document.getElementById('p-epodium').style.display='block';
-    renderPodium(s.scores,'p-epodium');
+    document.getElementById('p-epodium').style.display='none';
     document.getElementById('p-ewait').style.display='block';
   }
 
@@ -1241,7 +1238,7 @@ window.startGame=function(game){
     if(!gs.truthSubs?.length){alert('No submissions! Add them in Setup → 2 Truths.');return;}
     tOrder=[...gs.truthSubs].sort(()=>Math.random()-.5);tIdx=0;launchTruth();
   }else if(game==='emoji'){
-    ePool=[...EMOJI].sort(()=>Math.random()-.5);eIdx=0;initScores();launchEmoji();
+    ePool=[...EMOJI].sort(()=>Math.random()-.5);eIdx=0;launchEmoji();
   }
 };
 
@@ -1293,7 +1290,7 @@ window.nextTruth=function(){tIdx++;launchTruth();};
 
 /* EMOJI */
 function launchEmoji(){
-  if(eIdx>=ePool.length){mShowLb('emoji');return;}
+  if(eIdx>=ePool.length){update(roomRef,{phase:'lobby'}).then(()=>showP('mod','mod-lobby'));return;}
   const r=ePool[eIdx];
   const q={emojis:r.emojis,answer:r.answer,rn:eIdx+1,tr:ePool.length};
   update(roomRef,{phase:'emoji-q',currentQ:q,answers:{}}).then(()=>{
@@ -1305,13 +1302,13 @@ function launchEmoji(){
 }
 window.mRevealEmoji=function(){
   stopMT();
-  const r=ePool[eIdx],sc={...(gs.scores||{})};
-  update(roomRef,{phase:'emoji-rev',scores:sc}).then(()=>{
+  const r=ePool[eIdx];
+  update(roomRef,{phase:'emoji-rev',currentQ:{emojis:r.emojis,answer:r.answer,rn:eIdx+1,tr:ePool.length},answers:{}}).then(()=>{
     showP('mod','mod-emoji-rev');
     document.getElementById('m-erevdisp').textContent=r.emojis;
     document.getElementById('m-eans').textContent=r.answer;
     document.getElementById('m-erevprog').textContent=(eIdx+1)+' / '+ePool.length;
-    renderPodium(sc,'m-epodium');
+    document.getElementById('m-epodium').innerHTML='';
     confetti();
   });
 };
@@ -1326,7 +1323,7 @@ window.mShowLb=function(next){
     showP('mod','mod-lb');renderLb(gs.scores,'m-lbwin','m-lblist');
   });
 };
-window.lbContinue=function(){if(lbNext==='truth')window.nextTruth();else if(lbNext==='emoji')window.nextEmoji();else showP('mod','mod-lobby');};
+window.lbContinue=function(){if(lbNext==='truth')window.nextTruth();else showP('mod','mod-lobby');};
 window.endGame=function(){
   update(roomRef,{phase:'end'}).then(()=>{
     showP('mod','mod-end');renderLb(gs.scores,null,'m-finallb');confetti();
