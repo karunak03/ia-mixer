@@ -808,6 +808,7 @@ select.inp option { background: var(--ink2); }
       <div class="live-feed" id="m-tcorrect"></div>
     </div>
     <div class="btn-row mt-lg">
+      <button class="btn btn-ghost" onclick="replayTruth()">↺ Replay</button>
       <button class="btn btn-ghost" onclick="nextTruth()">Next player →</button>
       <button class="btn btn-v" onclick="mShowLb('truth')">Scores</button>
     </div>
@@ -837,7 +838,10 @@ select.inp option { background: var(--ink2); }
         <div class="t-num" id="m-enum">20</div>
       </div>
     </div>
-    <div class="mt"><button class="btn btn-ghost" onclick="mRevealEmoji()">Reveal answer →</button></div>
+    <div class="btn-row mt">
+      <button class="btn btn-ghost" id="m-eprev-btn" onclick="prevEmoji()" style="opacity:.5;">← Previous</button>
+      <button class="btn btn-ghost" onclick="mRevealEmoji()">Reveal answer →</button>
+    </div>
   </div>
 
   <!-- Emoji: Reveal -->
@@ -854,6 +858,7 @@ select.inp option { background: var(--ink2); }
     <!-- Speed ranking -->
     <div id="m-epodium" style="margin-top:12px;"></div>
     <div class="btn-row mt-lg">
+      <button class="btn btn-ghost" onclick="prevEmoji()">← Previous</button>
       <button class="btn btn-ghost" onclick="nextEmoji()">Next question →</button>
     </div>
   </div>
@@ -1297,6 +1302,8 @@ function launchEmoji(){
     showP('mod','mod-emoji-q');
     document.getElementById('m-edisp').textContent=r.emojis;
     document.getElementById('m-eprog').textContent=(eIdx+1)+' / '+ePool.length;
+    const prevBtn=document.getElementById('m-eprev-btn');
+    if(prevBtn)prevBtn.style.opacity=eIdx===0?'0.25':'1';
     startMT(20,'m-etbar','m-ering','m-enum');
   });
 }
@@ -1313,6 +1320,29 @@ window.mRevealEmoji=function(){
   });
 };
 window.nextEmoji=function(){eIdx++;launchEmoji();};
+
+window.prevEmoji=function(){
+  if(eIdx<=0)return;
+  eIdx--;
+  launchEmoji();
+};
+
+window.replayTruth=function(){
+  // Re-show the current truth round without re-awarding points
+  const sub=tOrder[tIdx];
+  const q=gs.currentQ;
+  if(!q)return;
+  update(roomRef,{phase:'truth-q',currentQ:q,answers:{}}).then(()=>{
+    showP('mod','mod-truth-q');
+    document.getElementById('m-tplayer').textContent=sub.player;
+    document.getElementById('m-tprog').textContent=(tIdx+1)+' / '+tOrder.length;
+    document.getElementById('m-tstmts-display').innerHTML=(q.shuffled||[]).map((s,i)=>
+      `<div class="mod-stmt-tile"><span class="stmt-num">${i+1}</span><span style="flex:1;">${s.text}</span><span class="stmt-cnt"></span></div>`
+    ).join('');
+    document.getElementById('m-tlive').innerHTML='<div class="live-empty">Replaying — no new points awarded</div>';
+    startMT(20,'m-ttbar','m-tring','m-tnum');
+  });
+};
 
 // Superlatives game removed
 
